@@ -1,0 +1,1221 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>冒険者ギルド daX</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body {
+      font-family: 'Helvetica Neue','Arial','Hiragino Kaku Gothic ProN','Hiragino Sans','Meiryo',sans-serif;
+    }
+    .screen { display: none; animation: fadeIn .5s; }
+    .active-screen { display: block; }
+    .option-selected {
+      background-color:#d1fae5!important; border-color:#10b981!important; color:#065f46!important;
+    }
+    .prose h2{margin-top:2em;margin-bottom:1em;border-bottom:1px solid #e5e7eb;padding-bottom:.5em;font-weight:600;font-size:1.25em;}
+    .prose h3{margin-top:1.5em;margin-bottom:1em;font-weight:600;}
+    .prose p{line-height:1.75;}
+    .prose table{width:100%;}
+    .prose th,.prose td{border:1px solid #e5e7eb;padding:.5em 1em;}
+    .prose th{background:#f3f4f6;}
+    @keyframes fadeIn{from{opacity:0}to{opacity:1}}
+
+    /* ===== Skill Board (Quest Map) ===== */
+    .skill-board-shell{
+      background: radial-gradient(1200px 600px at 20% 0%, rgba(253,230,138,.35), rgba(255,255,255,0));
+      border: 1px solid #e5e7eb;
+      border-radius: 14px;
+      box-shadow: 0 6px 20px rgba(0,0,0,.06);
+    }
+    svg.skill-board{ display:block; width:100%; height:auto; }
+    .connector{ stroke:#94a3b8; stroke-width:6; stroke-linecap:round; opacity:.6; }
+    .connector-cleared{ stroke:#34d399; opacity:.85; }
+    .node{ cursor:pointer; }
+    /* .node:hover{ transform:scale(1.07); } */ /* ぼよんぼよんを停止 */
+    .node-circle{
+      fill:#f8fafc;
+      stroke:#64748b;
+      stroke-width:3;
+      transition: fill .2s ease, stroke .2s ease; /* スムーズな色変化のため追加 */
+    }
+    /* ホバー時の色変化を追加 */
+    .node:hover .node-circle {
+      fill: #eef2ff;
+      stroke: #4338ca;
+    }
+    .node-cleared{ fill:#bbf7d0; stroke:#10b981; filter: drop-shadow(0 0 8px rgba(16,185,129,.6)); }
+    .column-title{ fill:#78350f; font-weight:700; font-size:14px; text-anchor:middle; }
+    .subject-badge{
+      background:linear-gradient(135deg,#78350f,#92400e);
+      color:#fff; border-radius:10px; padding:.35rem .7rem; display:inline-block;
+      box-shadow: 0 4px 14px rgba(120,53,15,.25);
+    }
+    /* topic highlight after jump */
+    @keyframes ringPulse {
+      0%{ box-shadow:0 0 0 0 rgba(251,146,60,.75);}
+      70%{ box-shadow:0 0 0 12px rgba(251,146,60,0);}
+      100%{ box-shadow:0 0 0 0 rgba(251,146,60,0);}
+    }
+    .pulse-ring{ animation: ringPulse 1.2s ease-out 2; }
+    /* 追加: 統合クエストマップ用スタイル */
+.row-title {
+  fill: #78350f;
+  font-weight: 600;
+  font-size: 12px;
+  text-anchor: end;
+}
+.subject-title {
+  fill: #111827;
+  font-weight: 700;
+  font-size: 13px;
+  text-anchor: end;
+}
+.skill-board-shell {
+  overflow-x: auto; /* 横スクロール対応 */
+}
+/* 大型マップ用の追加スタイル */
+.skill-board-shell {
+  overflow-x: auto;        /* 横スクロール */
+  overflow-y: visible;     /* 縦は自然なページスクロール */
+}
+
+.node-label {
+  font-size: 14px !important;
+}
+
+.column-title {
+  font-size: 18px !important;
+}
+
+.row-title {
+  font-size: 16px !important;
+}
+
+.connector {
+  stroke-width: 7;  /* 線も太く */
+}
+/* ノードラベルの確実な表示設定 */
+.node-label {
+  text-anchor: middle !important;
+  dominant-baseline: hanging !important;  /* hangingが最も安定 */
+  pointer-events: none !important;
+  font-size: 14px !important;
+  font-weight: 500 !important;
+  fill: #334155 !important;
+}
+/* foreignObject内のラベル用 */
+foreignObject div {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif !important;
+  font-size: 14px !important;
+  font-weight: 500 !important;
+  color: #334155 !important;
+  text-align: center !important;
+  line-height: 1.2 !important;
+  white-space: nowrap !important;
+  overflow: visible !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+  </style>
+</head>
+<body class="bg-amber-50">
+  <div id="main-container" class="w-full max-w-5xl mx-auto bg-white rounded-lg shadow-2xl my-8 overflow-hidden border-4 border-amber-900">
+    <header id="main-header" class="p-4 bg-amber-800 text-white flex justify-between items-center">
+      <h1 class="text-xl font-bold">冒険者ギルド daX</h1>
+      <div id="header-nav"></div>
+    </header>
+
+<main class="p-6 md:p-8">
+  <div id="guild-home-screen" class="screen active-screen">
+    <p class="text-gray-700 mb-8 border-l-4 border-amber-500 p-4 rounded-r-lg bg-amber-100">
+      ようこそ冒険者よ。ここでは様々な依頼(クエスト)をこなして実力をつけたり、先人の知恵を借りることができるぞ。
+    </p>
+    <div id="main-menu-list" class="grid grid-cols-1 md:grid-cols-2 gap-6"></div>
+  </div>
+
+  <div id="dojo-selection-screen" class="screen">
+    <h1 class="text-2xl md:text-3xl font-bold text-gray-800 mb-6">daX道場</h1>
+    <p class="text-gray-600 mb-8">挑戦する訓練を選んでくれ。</p>
+    <div id="subject-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+    <button class="back-to-guild-home-btn mt-8 w-full md:w-auto bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-6 rounded-lg transition">ギルドに戻る</button>
+  </div>
+
+  <div id="subcategory-selection-screen" class="screen">
+    <h1 id="subcategory-selection-title" class="text-2xl md:text-3xl font-bold text-gray-800 mb-6"></h1>
+    <div id="subcategory-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+    <button class="back-to-dojo-btn mt-8 w-full md:w-auto bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-6 rounded-lg transition">訓練選択に戻る</button>
+  </div>
+
+  <div id="topic-selection-screen" class="screen">
+    <h1 id="topic-selection-title" class="text-2xl md:text-3xl font-bold text-gray-800 mb-6"></h1>
+    <div id="topic-list" class="space-y-4"></div>
+    <button class="back-to-subcategory-btn mt-8 w-full md:w-auto bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-6 rounded-lg transition hidden">カテゴリ選択に戻る</button>
+    <button class="back-to-dojo-btn-from-topic mt-8 w-full md:w-auto bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-6 rounded-lg transition">訓練選択に戻る</button>
+  </div>
+
+  <div id="quest-map-screen" class="screen">
+    <h1 class="text-2xl md:text-3xl font-bold text-gray-800 mb-6">クエストマップ</h1>
+    <p class="text-gray-600 mb-4">左の幹から右に枝が伸びるマップ。丸を押すとその単元へ移動。右に増えた分は横スクロールで見られる。</p>
+    <div id="quest-map-list" class="space-y-10"></div>
+    <button class="back-to-guild-home-btn mt-8 w-full md:w-auto bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-6 rounded-lg transition">ギルドに戻る</button>
+  </div>
+
+  <div id="chiebukuro-home-screen" class="screen">
+    <div class="text-center mb-8 bg-gradient-to-r from-purple-600 to-indigo-600 text-white p-8 rounded-lg">
+      <h1 class="text-3xl md:text-4xl font-bold">daX知恵袋</h1>
+      <p class="opacity-90 mt-2">冒険に行き詰まったら、先人たちの知恵を借りるといいだろう。</p>
+    </div>
+    <div class="relative mb-8">
+      <input id="search-input" type="text" placeholder="知りたいことのキーワードを入力..." class="w-full p-4 pl-12 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"/>
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 absolute top-1/2 left-4 -translate-y-1/2 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+    </div>
+    <div id="library-categories" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4"></div>
+    <div id="search-results" class="hidden mt-6"></div>
+    <button class="back-to-guild-home-btn mt-8 w-full md:w-auto bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-6 rounded-lg transition">ギルドに戻る</button>
+  </div>
+
+  <div id="chiebukuro-category-screen" class="screen">
+    <h1 id="library-category-title" class="text-2xl md:text-3xl font-bold text-gray-800 mb-6 border-b pb-4"></h1>
+    <div class="space-y-8">
+      <div id="know-how-section" class="p-6 bg-gray-50 rounded-lg border">
+        <h2 class="text-xl font-bold text-gray-700 mb-4 flex items-center">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-3 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>特定の操作について知りたい
+        </h2>
+        <div id="know-how-list" class="space-y-3"></div>
+      </div>
+      <div id="faq-section" class="p-6 bg-gray-50 rounded-lg border">
+        <h2 class="text-xl font-bold text-gray-700 mb-4 flex items-center">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-3 text-orange-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>よくあるお問い合わせ
+        </h2>
+        <div id="faq-list" class="space-y-3"></div>
+      </div>
+    </div>
+    <button id="back-to-chiebukuro-home-btn" class="mt-8 w-full md:w-auto bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-6 rounded-lg transition">知恵袋トップに戻る</button>
+  </div>
+
+  <div id="chiebukuro-article-screen" class="screen">
+    <div id="breadcrumbs" class="text-sm text-gray-500 mb-2"></div>
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+      <div class="md:col-span-3">
+        <h1 id="library-article-title" class="text-2xl md:text-3xl font-bold text-gray-800 mb-6"></h1>
+        <div id="library-article-content" class="prose max-w-none"></div>
+      </div>
+      <aside class="md:col-span-1">
+        <div class="sticky top-8 p-4 bg-gray-50 rounded-lg border">
+          <h3 class="font-bold mb-2">この記事の内容</h3>
+          <ul id="toc-list" class="text-sm text-gray-600 space-y-2"></ul>
+        </div>
+      </aside>
+    </div>
+    <button id="back-to-category-btn" class="mt-8 w-full md:w-auto bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-6 rounded-lg transition">カテゴリに戻る</button>
+  </div>
+
+  <div id="chiebukuro-faq-screen" class="screen">
+    <div id="faq-breadcrumbs" class="text-sm text-gray-500 mb-2"></div>
+    <h1 id="library-faq-title" class="text-2xl md:text-3xl font-bold text-gray-800 mb-6"></h1>
+    <div id="library-faq-table" class="overflow-x-auto prose max-w-none"></div>
+    <button id="faq-back-to-category-btn" class="mt-8 w-full md:w-auto bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-6 rounded-lg transition">カテゴリに戻る</button>
+  </div>
+
+  <div id="quiz-screen" class="screen">
+    <div class="flex justify-between items-center mb-4">
+      <h2 id="question-number" class="text-xl font-bold text-gray-700"></h2>
+    </div>
+    <div id="question-area" class="bg-gray-100 p-6 rounded-lg mb-6 text-center"></div>
+    <div id="options-container" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
+    <div class="flex justify-between items-center mt-6">
+      <button id="back-to-topic-selection-btn" class="bg-gray-500 hover:bg-gray-600 text-white font-bold py-3 px-6 rounded-lg transition">単元選択に戻る</button>
+      <button id="next-btn" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-6 rounded-lg text-lg transition hidden">次の問題へ</button>
+    </div>
+  </div>
+
+  <div id="result-screen" class="screen">
+    <h1 id="result-title" class="text-2xl md:text-3xl font-bold text-gray-800 mb-4">結果発表</h1>
+    <p id="result-score" class="text-xl text-center font-semibold mb-6"></p>
+    <div class="overflow-x-auto border rounded-lg">
+      <table class="min-w-full bg-white text-center">
+        <thead class="bg-gray-100">
+          <tr>
+            <th class="py-3 px-4 text-sm font-semibold text-gray-600 uppercase">#</th>
+            <th class="py-3 px-4 text-sm font-semibold text-gray-600 uppercase">あなたの解答</th>
+            <th class="py-3 px-4 text-sm font-semibold text-gray-600 uppercase">正解</th>
+            <th class="py-3 px-4 text-sm font-semibold text-gray-600 uppercase">結果</th>
+            <th class="py-3 px-4 text-sm font-semibold text-gray-600 uppercase">解説</th>
+          </tr>
+        </thead>
+        <tbody id="result-table-body" class="divide-y divide-gray-200"></tbody>
+      </table>
+    </div>
+    <div id="result-actions" class="mt-8 flex flex-col md:flex-row justify-center gap-4"></div>
+  </div>
+</main>
+  </div>
+
+  <div id="explanation-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-white rounded-lg shadow-xl max-w-lg w-full p-6 relative">
+      <button id="close-modal-btn" class="absolute top-3 right-3 text-gray-500 hover:text-gray-800 text-2xl">&times;</button>
+      <h2 class="text-2xl font-bold text-gray-800 mb-4">解説</h2>
+      <div id="explanation-content" class="text-gray-700 space-y-4"></div>
+    </div>
+  </div>
+
+  <script>
+    // --- データ ---
+const guildMenu = {
+  dojo: {
+    title: "daX道場",
+    description: "訓練を積み、腕を磨く場所。",
+    icon: `<svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 text-red-500 mx-auto mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 1.75l-10 4.25v8.5l10 4.25 10-4.25v-8.5L12 1.75z" /><path stroke-linecap="round" stroke-linejoin="round" d="M2 6l10 4.25L22 6" /><path stroke-linecap="round" stroke-linejoin="round" d="M12 22.25V10.25" /></svg>`,
+    subjects: {
+      metrics: {
+        title: "daX重要指標",
+        icon: `<svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 text-blue-500 mx-auto mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>`,
+        topics: {
+          keiei: { title: "経営指標", questions: [{ question: "経営指標とは？", options: ["A","B"], answer: "A", explanation: "解説" }]},
+          sm:    { title: "S&M指標", questions: [{ question: "S&M指標とは？", options: ["A","B"], answer: "A", explanation: "解説" }]},
+          cs:    { title: "CS指標",   questions: [{ question: "CS指標とは？", options: ["A","B"], answer: "A", explanation: "解説" }]},
+          dev:   { title: "開発指標", questions: [{ question: "開発指標とは？", options: ["A","B"], answer: "A", explanation: "解説" }]}
+        }
+      },
+      manners: {
+        title: "ビジネスマナー",
+        icon: `<svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 text-green-500 mx-auto mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" /></svg>`,
+        subcategories: {
+          common: {
+            title: "社内外共通",
+            icon: `<svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 text-indigo-500 mx-auto mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2h8a2 2 0 002-2v-1a2 2 0 012-2h1.945M7.704 4.12l.092-.092a2 2 0 012.828 0l.488.488a2 2 0 010 2.828l-4.95 4.95a2 2 0 01-2.828 0l-.092-.092a2 2 0 010-2.828l4.47-4.47z" /></svg>`,
+            topics: {
+              midashinami:{ title:"身だしなみ", questions:[{ question:"身だしなみとは？", options:["A","B"], answer:"A", explanation:"解説" }]},
+              aisatsu:    { title:"挨拶",       questions:[{ question:"挨拶とは？", options:["A","B"], answer:"A", explanation:"解説" }]},
+              keigo:      { title:"敬語",       questions:[{ question:"敬語とは？", options:["A","B"], answer:"A", explanation:"解説" }]},
+              furumai:    { title:"振る舞い",   questions:[{ question:"振る舞いとは？", options:["A","B"], answer:"A", explanation:"解説" }]},
+              kijitsu:    { title:"期日/期限",   questions:[{ question:"期日/期限とは？", options:["A","B"], answer:"A", explanation:"解説" }]},
+              denwa:      { title:"電話対応",   questions:[{ question:"電話対応とは？", options:["A","B"], answer:"A", explanation:"解説" }]},
+              settai:     { title:"接待/会食",   questions:[{ question:"接待/会食とは？", options:["A","B"], answer:"A", explanation:"解説" }]},
+              kaigi:      { title:"会議",       questions:[{ question:"会議とは？", options:["A","B"], answer:"A", explanation:"解説" }]},
+              keikaku:    { title:"計画",       questions:[{ question:"計画とは？", options:["A","B"], answer:"A", explanation:"解説" }]}
+            }
+          },
+          internal: {
+            title: "社内",
+            icon: `<svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 text-sky-500 mx-auto mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" /></svg>`,
+            topics: {
+              hourenso:   { title:"報告/連絡/相談", questions:[{ question:"報連相とは？", options:["A","B"], answer:"A", explanation:"解説" }]},
+              chat:       { title:"社内連絡(チャット)", questions:[{ question:"チャットのマナーとは？", options:["A","B"], answer:"A", explanation:"解説" }]},
+              shanai_kaigi:{ title:"社内会議", questions:[{ question:"社内会議とは？", options:["A","B"], answer:"A", explanation:"解説" }]}
+            }
+          },
+          external: {
+            title: "社外",
+            icon: `<svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 text-rose-500 mx-auto mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2h8a2 2 0 002-2v-1a2 2 0 012-2h1.945M7.704 4.12l.092-.092a2 2 0 012.828 0l.488.488a2 2 0 010 2.828l-4.95 4.95a2 2 0 01-2.828 0l-.092-.092a2 2 0 010-2.828l4.47-4.47z" /></svg>`,
+            topics: {
+              email:      { title:"メール対応", questions:[{ question:"メールのマナーとは？", options:["A","B"], answer:"A", explanation:"解説" }]},
+              houmon:     { title:"訪問会議", questions:[{ question:"訪問時のマナーとは？", options:["A","B"], answer:"A", explanation:"解説" }]},
+              web_kaigi:  { title:"web会議", questions:[{ question:"web会議のマナーとは？", options:["A","B"], answer:"A", explanation:"解説" }]}
+            }
+          }
+        }
+      },
+      accounting: {
+        title: "会計知識",
+        icon: `<svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 text-amber-500 mx-auto mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" /></svg>`,
+        topics: {
+          accounting_basics:{ title:"会計知識", questions:[{ question:"会計とは？", options:["A","B"], answer:"A", explanation:"解説" }]}
+        }
+      },
+      terms: {
+        title: "daX重要用語",
+        icon: `<svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 text-cyan-500 mx-auto mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" /></svg>`,
+        topics: {
+          business:   { title:"ビジネス用語", questions:[{ question:"ビジネス用語とは？", options:["A","B"], answer:"A", explanation:"解説" }]},
+          management: { title:"経営用語",     questions:[{ question:"経営用語とは？",   options:["A","B"], answer:"A", explanation:"解説" }]},
+          sm_terms:   { title:"S&M用語",     questions:[{ question:"S&M用語とは？",   options:["A","B"], answer:"A", explanation:"解説" }]},
+          cs_terms:   { title:"CS用語",       questions:[{ question:"CS用語とは？",     options:["A","B"], answer:"A", explanation:"解説" }]},
+          dev_terms:  { title:"開発用語",     questions:[{ question:"開発用語とは？",   options:["A","B"], answer:"A", explanation:"解説" }]}
+        }
+      },
+      pc_skills: {
+        title: "基本的PC操作",
+        icon: `<svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 text-slate-500 mx-auto mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>`,
+        topics: {
+          typing:   { title:"タイピング",       questions:[{ question:"タイピングとは？", options:["A","B"], answer:"A", explanation:"解説" }]},
+          shortcut: { title:"ショートカットキー", questions:[{ question:"ショートカットキーとは？", options:["A","B"], answer:"A", explanation:"解説" }]}
+        }
+      },
+      communication: {
+        title: "コミュニケーションツールの活用ルール",
+        icon: `<svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 text-pink-500 mx-auto mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" /></svg>`,
+        topics: {
+          slack:      { title:"Slackのルール", questions:[{ question:"Slackのルールとは？", options:["A","B"], answer:"A", explanation:"解説" }]},
+          email_rule: { title:"メールのルール", questions:[{ question:"メールのルールとは？", options:["A","B"], answer:"A", explanation:"解説" }]}
+        }
+      },
+      google_workspace: {
+        title: "Google Workspaceの活用ルール",
+        icon: `<svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 text-red-500 mx-auto mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 10v4a2 2 0 002 2h14a2 2 0 002-2v-4M3 10l6.227-4.67a2 2 0 012.546 0L18 10M3 10l6.227 4.67a2 2 0 002.546 0L18 10m0 0l2.227-1.67a2 2 0 000-3.26l-2.227-1.67m-12 0l-2.227 1.67a2 2 0 000 3.26l2.227 1.67" /></svg>`,
+        topics: {
+          chrome:   { title:"Chromeの活用ルール", questions:[{ question:"Chromeの活用ルールとは？", options:["A","B"], answer:"A", explanation:"解説" }]},
+          gmail:    { title:"Gmailの活用ルール",  questions:[{ question:"Gmailの活用ルールとは？",  options:["A","B"], answer:"A", explanation:"解説" }]},
+          calendar: { title:"Google カレンダーの活用ルール", questions:[{ question:"カレンダーの活用ルールとは？", options:["A","B"], answer:"A", explanation:"解説" }]}
+        }
+      },
+      documentation: {
+        title: "ドキュメンテーション",
+        icon: `<svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 text-indigo-500 mx-auto mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>`,
+        topics: {
+          gslide_doc: { title:"Google スライドのドキュメンテーションルール", questions:[{ question:"スライドのルールとは？", options:["A","B"], answer:"A", explanation:"解説" }]},
+          gsheet_doc: { title:"Google スプレッドシートのドキュメンテーションルール", questions:[{ question:"スプレッドシートのルールとは？", options:["A","B"], answer:"A", explanation:"解説" }]},
+          gsheet_skill:{ title:"Google スプレッドシートのドキュメンテーションスキル (関数の使い方)", questions:[{ question:"関数の使い方とは？", options:["A","B"], answer:"A", explanation:"解説" }]}
+        }
+      },
+      security: {
+        title: "セキュリティルール",
+        icon: `<svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 text-gray-500 mx-auto mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>`,
+        topics: {
+          security_test: { title:"セキュリティテスト 模擬問題", questions:[{ question:"セキュリティテストとは？", options:["A","B"], answer:"A", explanation:"解説" }]}
+        }
+      },
+      labor: {
+        title: "労務・勤怠ルール",
+        icon: `<svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 text-lime-500 mx-auto mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>`,
+        topics: {
+          labor_rules: { title:"労務・勤怠ルール", questions:[{ question:"労務・勤怠ルールとは？", options:["A","B"], answer:"A", explanation:"解説" }]}
+        }
+      }
+    }
+  },
+  chiebukuro: {
+    title: "daX知恵袋",
+    description: "先人たちの知恵が詰まった場所。",
+    icon: `<svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 text-purple-500 mx-auto mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" /></svg>`,
+    categories: {
+      math_basics: {
+        title: "数学の基礎",
+        description: "計算や方程式の基本的な考え方を学びます。",
+        icon: `<svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 14h.01M9 11h.01M12 11h.01M15 11h.01M12 4a1 1 0 011 1v1H11V5a1 1 0 011-1z" /><path d="M4 7v10a2 2 0 002 2h12a2 2 0 002-2V7a2 2 0 00-2-2H6a2 2 0 00-2 2z" /></svg>`,
+        know_how: {
+          seifu_kaisetsu: {
+            title: "正負の数の基本を知りたい",
+            content: `<h2 id="toc-1">正負の数とは？</h2><p>0より大きい数を正の数、0より小さい数を負の数といいます。正の数は「+」、負の数は「-」の符号を使って表します。</p><h3 id="toc-2">加法（足し算）</h3><p>符号が同じ場合は、絶対値を足して共通の符号をつけます。符号が違う場合は、絶対値の大きい方から小さい方を引き、絶対値の大きい方の符号をつけます。</p><h3 id="toc-3">乗法（掛け算）</h3><p>符号が同じ場合は答えの符号は「+」、符号が違う場合は答えの符号は「-」になります。</p>`
+          },
+          houteishiki_kaisetsu: {
+            title: "方程式の解き方を知りたい",
+            content: `<h2 id="toc-1">一次方程式の解き方</h2><p>「移項」を使って、文字の項を左辺に、数の項を右辺に集めるのが基本です。</p><ol class="list-decimal list-inside"><li>文字の項を左辺、数の項を右辺に移項する（移項すると符号が変わる）。</li><li>両辺をそれぞれ計算して、ax = b の形にする。</li><li>両辺をxの係数aで割る。</li></ol>`
+          }
+        },
+        faq: {
+          title: "数学の基礎に関するよくあるお問い合わせ",
+          questions: [
+            { q: "負の数同士をかけるとどうなりますか？", a: "答えの符号は正(+)になります。例：(-2) × (-3) = 6" },
+            { q: "移項すると符号はどうなりますか？", a: "符号は逆になります。プラスはマイナスに、マイナスはプラスになります。" }
+          ]
+        }
+      },
+      english_basics: {
+        title: "英語の基礎",
+        description: "英単語や基礎文法のポイントを確認します。",
+        icon: `<svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-orange-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v3a3 3 0 01-3 3z" /></svg>`,
+        know_how: {
+          tango_kaisetsu: {
+            title: "英単語の覚え方を知りたい",
+            content: `<h2 id="toc-1">効率的な英単語の覚え方</h2><p>単語帳を繰り返し見たり、例文の中で使い方を覚えたりするのが効果的です。</p>`
+          }
+        },
+        faq: {
+          title: "英語の基礎に関するよくあるお問い合わせ",
+          questions: [
+            { q: '"a" と "an" の使い分けは？', a: '次にくる単語の最初の音によります。母音（ア、イ、ウ、エ、オ）の音で始まる単語の前には "an" を使います。' }
+          ]
+        }
+      }
+    }
+  },
+  quest_map: {
+    title: "クエストマップ",
+    description: "受注可能な依頼の一覧。",
+    icon: `<svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 text-cyan-500 mx-auto mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L12 9l7.553-3.776A1 1 0 0121 5.618v10.764a1 1 0 01-.553.894L15 20l-3-1.5-3 1.5z" /></svg>`
+  }
+};
+
+// --- グローバル状態 ---
+let currentSubjectKey = '';
+let currentSubCategoryKey = '';
+let currentCategoryKey = '';
+let currentTopicId = '';
+let quizData = [];
+let currentQuestionIndex = 0;
+let userAnswers = [];
+let currentMode = '';
+let selectedOption = null;
+
+// 複合ID生成: subject__subcategory(or root)__topic
+function makeTopicId(subjectKey, subCategoryKey, topicKey) {
+  return `${subjectKey}__${subCategoryKey || 'root'}__${topicKey}`;
+}
+
+// DOM ready
+document.addEventListener('DOMContentLoaded', () => {
+  const backToGuildHomeBtns = document.querySelectorAll('.back-to-guild-home-btn');
+  const backToDoJoBtn = document.querySelectorAll('.back-to-dojo-btn');
+  const backToSubCategoryBtn = document.querySelector('.back-to-subcategory-btn');
+  const backToDojoBtnFromTopic = document.querySelector('.back-to-dojo-btn-from-topic');
+  const backToTopicSelectionBtn = document.getElementById('back-to-topic-selection-btn');
+  const backToChiebukuroHomeBtn = document.getElementById('back-to-chiebukuro-home-btn');
+  const backToCategoryBtn = document.getElementById('back-to-category-btn');
+  const faqBackToCategoryBtn = document.getElementById('faq-back-to-category-btn');
+  const nextBtn = document.getElementById('next-btn');
+  const closeModalBtn = document.getElementById('close-modal-btn');
+  const searchInput = document.getElementById('search-input');
+
+  createMainMenu();
+
+  backToGuildHomeBtns.forEach(btn => btn.addEventListener('click', () => showScreen('guild-home-screen')));
+  backToDoJoBtn.forEach(btn => btn.addEventListener('click', () => showScreen('dojo-selection-screen')));
+  if (backToSubCategoryBtn) backToSubCategoryBtn.addEventListener('click', () => showSubCategorySelection(currentSubjectKey));
+  if (backToDojoBtnFromTopic) backToDojoBtnFromTopic.addEventListener('click', () => showDojoSelection());
+  backToTopicSelectionBtn.addEventListener('click', () => showScreen('topic-selection-screen'));
+  backToChiebukuroHomeBtn.addEventListener('click', () => showScreen('chiebukuro-home-screen'));
+  backToCategoryBtn.addEventListener('click', () => showLibraryCategory(currentCategoryKey));
+  faqBackToCategoryBtn.addEventListener('click', () => showLibraryCategory(currentCategoryKey));
+  nextBtn.addEventListener('click', nextQuestion);
+  closeModalBtn.addEventListener('click', () => document.getElementById('explanation-modal').classList.add('hidden'));
+  if (searchInput) searchInput.addEventListener('input', handleSearch);
+});
+// ===== 共通UI =====
+function showScreen(id){
+  document.querySelectorAll('.screen').forEach(el=>el.classList.remove('active-screen'));
+  document.getElementById(id).classList.add('active-screen');
+}
+
+function createMainMenu(){
+  const wrap = document.getElementById('main-menu-list');
+  wrap.innerHTML = '';
+  for(const key in guildMenu){
+    const menu = guildMenu[key];
+    const btn = document.createElement('button');
+    btn.className = 'text-center p-6 bg-white hover:shadow-lg border-2 border-gray-200 hover:border-amber-400 rounded-lg transition transform hover:-translate-y-1';
+    btn.dataset.subject = key;
+    btn.innerHTML = `${menu.icon || ''}<h2 class="text-2xl font-bold text-gray-800">${menu.title}</h2><p class="text-gray-500">${menu.description || ''}</p>`;
+    if(key==='chiebukuro') btn.addEventListener('click', showLibraryHome);
+    if(key==='dojo') btn.addEventListener('click', showDojoSelection);
+    if(key==='quest_map') btn.addEventListener('click', showQuestMap);
+    wrap.appendChild(btn);
+  }
+}
+
+// ===== Dojo: 科目/サブカテゴリ/単元 =====
+function showDojoSelection(){
+  const wrap = document.getElementById('subject-list');
+  wrap.innerHTML = '';
+  const subjects = guildMenu.dojo.subjects;
+  for(const subjectKey in subjects){
+    const subject = subjects[subjectKey];
+    const btn = document.createElement('button');
+    btn.className = 'text-center p-6 bg-white hover:shadow-lg border-2 border-gray-200 hover:border-blue-400 rounded-lg transition transform hover:-translate-y-1';
+    btn.innerHTML = `${subject.icon || ''}<span class="text-xl font-bold text-gray-700">${subject.title}</span>`;
+    btn.addEventListener('click', ()=>{
+      if(subject.subcategories) showSubCategorySelection(subjectKey);
+      else showTopicSelection(subjectKey, null);
+    });
+    wrap.appendChild(btn);
+  }
+  showScreen('dojo-selection-screen');
+}
+
+function showSubCategorySelection(subjectKey){
+  currentSubjectKey = subjectKey;
+  const subject = guildMenu.dojo.subjects[subjectKey];
+  document.getElementById('subcategory-selection-title').textContent = subject.title;
+  const wrap = document.getElementById('subcategory-list');
+  wrap.innerHTML = '';
+  for(const subKey in subject.subcategories){
+    const sub = subject.subcategories[subKey];
+    const btn = document.createElement('button');
+    btn.className = 'text-center p-6 bg-white hover:shadow-lg border-2 border-gray-200 hover:border-blue-400 rounded-lg transition transform hover:-translate-y-1';
+    btn.innerHTML = `${sub.icon || ''}<span class="text-xl font-bold text-gray-700">${sub.title}</span>`;
+    btn.onclick = ()=>showTopicSelection(subjectKey, subKey);
+    wrap.appendChild(btn);
+  }
+  showScreen('subcategory-selection-screen');
+}
+
+function showTopicSelection(subjectKey, subCategoryKey=null){
+  currentSubjectKey = subjectKey;
+  currentSubCategoryKey = subCategoryKey;
+  const subject = guildMenu.dojo.subjects[subjectKey];
+  const topics = subCategoryKey ? subject.subcategories[subCategoryKey].topics : subject.topics;
+  const title = subCategoryKey ? subject.subcategories[subCategoryKey].title : subject.title;
+  document.getElementById('topic-selection-title').textContent = title;
+  document.querySelector('.back-to-subcategory-btn').style.display = subCategoryKey ? 'inline-block' : 'none';
+  document.querySelector('.back-to-dojo-btn-from-topic').style.display = subCategoryKey ? 'none' : 'inline-block';
+  createTopicList(topics);
+  showScreen('topic-selection-screen');
+}
+
+function createTopicList(topics){
+  const wrap = document.getElementById('topic-list');
+  wrap.innerHTML = '';
+  for(const topicKey in topics){
+    const topic = topics[topicKey];
+    const row = document.createElement('div');
+    const topicId = makeTopicId(currentSubjectKey, currentSubCategoryKey, topicKey);
+    row.id = `topic-item-${topicId}`;
+    row.className = 'topic-item flex justify-between items-center bg-gray-100 p-4 rounded-lg';
+    row.innerHTML = `
+      <span class="text-lg font-semibold text-gray-700">${topic.title}</span>
+      <div class="flex space-x-2">
+        <button class="mode-btn bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-lg transition text-sm" data-topic="${topicKey}" data-mode="full-check">全問チェック</button>
+        <button class="mode-btn bg-teal-500 hover:bg-teal-600 text-white font-bold py-2 px-4 rounded-lg transition text-sm" data-topic="${topicKey}" data-mode="test">テスト</button>
+      </div>
+    `;
+    wrap.appendChild(row);
+  }
+  document.querySelectorAll('.mode-btn').forEach(btn=>{
+    btn.addEventListener('click', e=>{
+      const topicKey = e.currentTarget.dataset.topic;
+      const mode = e.currentTarget.dataset.mode;
+      const questions = currentSubCategoryKey
+        ? guildMenu.dojo.subjects[currentSubjectKey].subcategories[currentSubCategoryKey].topics[topicKey].questions
+        : guildMenu.dojo.subjects[currentSubjectKey].topics[topicKey].questions;
+      // 複合IDで保存
+      startQuiz(questions, mode, makeTopicId(currentSubjectKey, currentSubCategoryKey, topicKey));
+    });
+  });
+}
+
+// ===== 知恵袋 =====
+function showLibraryHome(){
+  const wrap = document.getElementById('library-categories');
+  wrap.innerHTML = '';
+  const categories = guildMenu.chiebukuro.categories;
+  for(const key in categories){
+    const c = categories[key];
+    const item = document.createElement('div');
+    item.className = 'text-center p-4 bg-white rounded-lg border hover:shadow-md cursor-pointer transition';
+    item.onclick = ()=>showLibraryCategory(key);
+    item.innerHTML = `
+      <div class="flex items-center justify-center h-16 w-16 rounded-full bg-purple-100 mx-auto mb-2">${c.icon}</div>
+      <h3 class="font-bold text-gray-800">${c.title}</h3>
+    `;
+    wrap.appendChild(item);
+  }
+  showScreen('chiebukuro-home-screen');
+}
+
+function handleSearch(e){
+  const searchTerm = e.target.value.toLowerCase();
+  const list = document.getElementById('library-categories');
+  const results = document.getElementById('search-results');
+  if(searchTerm.length<1){ results.classList.add('hidden'); list.classList.remove('hidden'); return; }
+  list.classList.add('hidden'); results.classList.remove('hidden'); results.innerHTML='';
+  const found=[];
+  for(const categoryKey in guildMenu.chiebukuro.categories){
+    const c = guildMenu.chiebukuro.categories[categoryKey];
+    for(const articleKey in c.know_how){
+      const a = c.know_how[articleKey];
+      if((a.title+a.content).toLowerCase().includes(searchTerm)) found.push({type:'know', categoryKey, articleKey, article:a});
+    }
+    if(c.faq.title.toLowerCase().includes(searchTerm)) found.push({type:'faq', categoryKey, faq:c.faq});
+  }
+  if(found.length){
+    found.forEach(r=>{
+      const item = document.createElement('div');
+      item.className = 'p-4 bg-gray-100 rounded-lg hover:bg-gray-200 cursor-pointer transition';
+      const title = r.type==='faq' ? r.faq.title : r.article.title;
+      item.innerHTML = `<h3 class="font-semibold">${title}</h3><p class="text-sm text-gray-500">${guildMenu.chiebukuro.categories[r.categoryKey].title}</p>`;
+      item.onclick = ()=> r.type==='faq' ? showLibraryFaq(r.categoryKey) : showLibraryArticle(r.categoryKey, r.articleKey);
+      results.appendChild(item);
+    });
+  }else{
+    results.innerHTML = `<p class="text-center text-gray-500">検索結果が見つかりませんでした。</p>`;
+  }
+}
+
+function showLibraryCategory(categoryKey){
+  currentCategoryKey = categoryKey;
+  const c = guildMenu.chiebukuro.categories[categoryKey];
+  document.getElementById('library-category-title').textContent = c.title;
+
+  const list1 = document.getElementById('know-how-list'); list1.innerHTML='';
+  for(const articleKey in c.know_how){
+    const a = c.know_how[articleKey];
+    const item = document.createElement('a');
+    item.href='#';
+    item.className='block p-4 bg-white border rounded-lg hover:shadow-md transition';
+    item.innerHTML=`<span class="font-semibold text-blue-600">${a.title}</span>`;
+    item.onclick=(e)=>{ e.preventDefault(); showLibraryArticle(categoryKey, articleKey); };
+    list1.appendChild(item);
+  }
+
+  const list2 = document.getElementById('faq-list'); list2.innerHTML='';
+  const faqItem = document.createElement('a');
+  faqItem.href='#';
+  faqItem.className='block p-4 bg-white border rounded-lg hover:shadow-md transition';
+  faqItem.innerHTML = `<span class="font-semibold text-blue-600">${c.faq.title}</span>`;
+  faqItem.onclick=(e)=>{ e.preventDefault(); showLibraryFaq(categoryKey); };
+  list2.appendChild(faqItem);
+
+  showScreen('chiebukuro-category-screen');
+}
+
+function showLibraryArticle(categoryKey, articleKey){
+  const c = guildMenu.chiebukuro.categories[categoryKey];
+  const a = c.know_how[articleKey];
+  document.getElementById('breadcrumbs').innerHTML = `
+    <a href="#" onclick="event.preventDefault(); showLibraryHome();" class="hover:underline">知恵袋</a> &gt;
+    <a href="#" onclick="event.preventDefault(); showLibraryCategory('${categoryKey}');" class="hover:underline">${c.title}</a>
+  `;
+  document.getElementById('library-article-title').textContent = a.title;
+  const content = document.getElementById('library-article-content');
+  content.innerHTML = a.content;
+
+  const toc = document.getElementById('toc-list'); toc.innerHTML='';
+  content.querySelectorAll('h2,h3').forEach(h=>{
+    const li=document.createElement('li');
+    const at=document.createElement('a');
+    at.href='#'+(h.id || '');
+    at.textContent=h.textContent;
+    at.className=`hover:underline ${h.tagName==='H3'?'ml-4':''}`;
+    at.onclick=(e)=>{ e.preventDefault(); h.scrollIntoView({behavior:'smooth'}); };
+    li.appendChild(at); toc.appendChild(li);
+  });
+  showScreen('chiebukuro-article-screen');
+}
+
+function showLibraryFaq(categoryKey){
+  const c = guildMenu.chiebukuro.categories[categoryKey];
+  document.getElementById('faq-breadcrumbs').innerHTML = `
+    <a href="#" onclick="event.preventDefault(); showLibraryHome();" class="hover:underline">知恵袋</a> &gt;
+    <a href="#" onclick="event.preventDefault(); showLibraryCategory('${categoryKey}');" class="hover:underline">${c.title}</a>
+  `;
+  document.getElementById('library-faq-title').textContent = c.faq.title;
+
+  let html = `<table class="min-w-full bg-white border border-gray-200">
+    <thead>
+      <tr>
+        <th class="py-3 px-4 w-12 text-center text-sm font-semibold text-gray-700 bg-gray-100">#</th>
+        <th class="py-3 px-4 text-left text-sm font-semibold text-gray-800 bg-rose-100">よくあるお問い合わせ</th>
+        <th class="py-3 px-4 text-left text-sm font-semibold text-gray-800 bg-blue-100">回答</th>
+      </tr>
+    </thead><tbody class="divide-y divide-gray-200">`;
+  c.faq.questions.forEach((q,i)=>{
+    html += `<tr><td class="py-4 px-4 align-top text-center font-semibold text-gray-500">${i+1}</td><td class="py-4 px-4 align-top text-gray-700">${q.q}</td><td class="py-4 px-4 align-top text-gray-700">${q.a}</td></tr>`;
+  });
+  html += `</tbody></table>`;
+  document.getElementById('library-faq-table').innerHTML=html;
+  showScreen('chiebukuro-faq-screen');
+}
+
+// ===== クイズ =====
+function startQuiz(questions, mode, topicId){
+  quizData = questions;
+  currentMode = mode;
+  currentTopicId = topicId; // ←複合ID
+  currentQuestionIndex = 0;
+  userAnswers = [];
+  showScreen('quiz-screen');
+  showQuestion();
+}
+
+function showQuestion(){
+  const nextBtn = document.getElementById('next-btn');
+  const optionsContainer = document.getElementById('options-container');
+  const questionArea = document.getElementById('question-area');
+  nextBtn.classList.add('hidden');
+  optionsContainer.innerHTML = ''; questionArea.innerHTML = ''; selectedOption=null;
+
+  const q = quizData[currentQuestionIndex];
+  document.getElementById('question-number').textContent = `問題 ${currentQuestionIndex+1} / ${quizData.length}`;
+  if(q.image){
+    const img = document.createElement('img'); img.src=q.image; img.alt=q.question; img.className='mx-auto rounded-lg max-h-64 mb-4';
+    questionArea.appendChild(img);
+    const p = document.createElement('p'); p.textContent=q.question; p.className='text-2xl md:text-3xl text-center font-semibold text-gray-800'; questionArea.appendChild(p);
+  }else{
+    questionArea.innerHTML = `<p class="text-2xl md:text-3xl text-center font-semibold text-gray-800">${q.question}</p>`;
+  }
+
+  q.options.forEach(opt=>{
+    const b = document.createElement('button');
+    b.textContent = opt;
+    b.classList.add('option-btn','p-4','bg-white','border-2','border-gray-300','rounded-lg','text-lg','hover:bg-gray-100','transition');
+    if(q.options.includes("○")) b.classList.add('text-4xl','font-bold');
+    b.addEventListener('click',()=>selectAnswer(opt,b));
+    optionsContainer.appendChild(b);
+  });
+}
+
+function selectAnswer(option, el){
+  selectedOption = option;
+  document.querySelectorAll('.option-btn').forEach(b=>b.classList.remove('option-selected'));
+  el.classList.add('option-selected');
+  document.getElementById('next-btn').classList.remove('hidden');
+}
+
+function nextQuestion(){
+  if(selectedOption===null) return;
+  userAnswers.push({questionObj: quizData[currentQuestionIndex], selected:selectedOption});
+  currentQuestionIndex++;
+  if(currentQuestionIndex<quizData.length) showQuestion(); else showResult();
+}
+
+function showResult(){
+  let correct = 0;
+  const tbody = document.getElementById('result-table-body'); tbody.innerHTML='';
+  const incorrect = [];
+  userAnswers.forEach((ans,i)=>{
+    const ok = ans.selected===ans.questionObj.answer;
+    if(ok) correct++; else incorrect.push(ans.questionObj);
+    const tr=document.createElement('tr'); tr.className = ok ? 'bg-green-50':'bg-red-50';
+    tr.innerHTML = `
+      <td class="py-3 px-4 font-semibold">${i+1}</td>
+      <td class="py-3 px-4">${ans.selected}</td>
+      <td class="py-3 px-4">${ans.questionObj.answer}</td>
+      <td class="py-3 px-4 text-xl font-bold ${ok?'text-green-500':'text-red-500'}">${ok?'○':'×'}</td>
+      <td class="py-3 px-4"><button class="explanation-btn bg-gray-200 hover:bg-gray-300 text-gray-700 text-sm font-bold py-1 px-3 rounded" data-index="${i}">解説</button></td>`;
+    tbody.appendChild(tr);
+  });
+
+  // テストモードで全問正解→クリア保存
+  if(currentMode==='test' && correct===userAnswers.length){ saveClearedQuest(currentTopicId); }
+  // 解説ボタンのバインドと文言
+  document.querySelectorAll('.explanation-btn').forEach(btn=>{
+    btn.addEventListener('click', e=>{
+      const idx = e.currentTarget.dataset.index;
+      showExplanation(userAnswers[idx]);
+    });
+  });
+  document.getElementById('result-title').textContent = currentMode==='test' ? 'テスト 結果' : '全問チェック 結果';
+  document.getElementById('result-score').textContent = `${userAnswers.length}問中 ${correct}問 正解しました！`;
+
+  const actions = document.getElementById('result-actions');
+  actions.innerHTML = '';
+  if(incorrect.length>0){
+    const retryBtn = document.createElement('button');
+    retryBtn.textContent = '間違えた問題を再トライ';
+    retryBtn.className = 'w-full md:w-auto bg-red-500 hover:bg-red-600 text-white font-bold py-3 px-6 rounded-lg text-xl transition';
+    retryBtn.onclick = ()=> startQuiz(incorrect, 'test', `retry-${currentTopicId}`);
+    actions.appendChild(retryBtn);
+  }
+  const backBtn = document.createElement('button');
+  backBtn.textContent = '単元選択に戻る';
+  backBtn.className = 'w-full md:w-auto bg-orange-500 hover:bg-orange-600 text-white font-bold py-3 px-6 rounded-lg text-xl transition';
+  backBtn.onclick = restartQuiz;
+  actions.appendChild(backBtn);
+
+  showScreen('result-screen');
+}
+
+function showExplanation(answer){
+  document.getElementById('explanation-content').innerHTML = `
+    <p class="font-semibold">問題：</p>
+    <p class="mb-4">${answer.questionObj.question}</p>
+    <p class="font-semibold">あなたの解答： <span class="font-normal">${answer.selected}</span></p>
+    <p class="font-semibold">正解： <span class="font-normal">${answer.questionObj.answer}</span></p>
+    <hr class="my-4">
+    <p>${answer.questionObj.explanation || 'この問題には解説がありません。'}</p>
+  `;
+  document.getElementById('explanation-modal').classList.remove('hidden');
+}
+
+function restartQuiz(){ showScreen('topic-selection-screen'); }
+
+// ====== クエストマップ（スキルボード） ======
+const CLEARED_KEY = 'clearedQuests_v2';
+const SVG_NS = 'http://www.w3.org/2000/svg';
+
+// 既存の関数（変更なし）
+function getClearedQuests(){
+  try{
+    const raw = localStorage.getItem(CLEARED_KEY);
+    const arr = raw ? JSON.parse(raw) : [];
+    return Array.isArray(arr) ? arr : [];
+  }catch(e){ return []; }
+}
+
+function saveClearedQuest(topicId){
+  if(topicId && topicId.startsWith('retry-')) return;
+  const arr = getClearedQuests();
+  if(!arr.includes(topicId)){
+    arr.push(topicId);
+    localStorage.setItem(CLEARED_KEY, JSON.stringify(arr));
+  }
+}
+
+function svgEl(tag, attrs={}){
+  const el = document.createElementNS(SVG_NS, tag);
+  for(const k in attrs){
+    if(k==='class' || k==='className'){ el.setAttribute('class', attrs[k]); }
+    else el.setAttribute(k, attrs[k]);
+  }
+  return el;
+}
+
+function jumpToTopic(subjectKey, subCategoryKey, topicKey){
+  showTopicSelection(subjectKey, subCategoryKey);
+  const topicId = makeTopicId(subjectKey, subCategoryKey, topicKey);
+  setTimeout(()=>{
+    const el = document.getElementById(`topic-item-${topicId}`);
+    if(el){
+      el.classList.add('pulse-ring');
+      el.scrollIntoView({ behavior:'smooth', block:'center' });
+      setTimeout(()=> el.classList.remove('pulse-ring'), 1600);
+    }
+  }, 60);
+}
+
+// ===== 新しい統合クエストマップ =====
+
+// レイアウト設定（大型化＆重なり解消対応）
+const LAYOUT_CONFIG = {
+  nodeRadius: 28,           // ノード半径
+  horizontalSpacing: 280,   // 水平間隔
+  verticalSpacing: 140,     // 垂直間隔を拡大
+  branchLength: 180,        // 枝の長さ
+  marginX: 60,             // 左右余白
+  marginY: 50,             // 上下余白
+  compactThreshold: 0      // コンパクト化を完全無効化
+};
+
+function buildUnifiedMapStructure(){
+  const subjects = guildMenu.dojo.subjects;
+  const clearedSet = new Set(getClearedQuests());
+
+  // 重複回避用の余白設定
+  const BRANCH_GAP = 60;      // ブランチ間の最低余白
+  const SUBJECT_GAP = 100;    // 科目間の最低余白
+
+  const mapData = { subjects: [], totalTopics: 0, maxY: 0 };
+
+  // 進行ポインタ（現在の配置可能な最上位置）
+  let cursorBottom = 0;
+
+  for(const subjectKey in subjects){
+    const subject = subjects[subjectKey];
+
+    // ブランチデータを事前構築
+    const branches = [];
+    if(subject.subcategories){
+      for(const subKey in subject.subcategories){
+        const sub = subject.subcategories[subKey];
+        const topics = Object.entries(sub.topics).map(([topicKey, topic]) => ({
+          topicKey,
+          subCategoryKey: subKey,
+          title: topic.title,
+          id: makeTopicId(subjectKey, subKey, topicKey),
+          cleared: clearedSet.has(makeTopicId(subjectKey, subKey, topicKey))
+        }));
+        branches.push({ title: sub.title, topics });
+      }
+    }
+    if(subject.topics){
+      const topics = Object.entries(subject.topics).map(([topicKey, topic]) => ({
+        topicKey,
+        subCategoryKey: null,
+        title: topic.title,
+        id: makeTopicId(subjectKey, null, topicKey),
+        cleared: clearedSet.has(makeTopicId(subjectKey, null, topicKey))
+      }));
+      branches.push({ title: '', topics });
+    }
+
+    if(branches.length === 0) continue;
+
+    const subjectData = {
+      key: subjectKey,
+      title: subject.title,
+      branches: [],
+      topY: Infinity,
+      bottomY: -Infinity,
+      centerY: 0
+    };
+
+    let subjectTopY = Infinity;
+    let subjectBottomY = -Infinity;
+
+    // 各ブランチを重複しないように配置
+    branches.forEach(branch => {
+      const topicCount = Math.max(1, branch.topics.length);
+      const branchHalfHeight = (topicCount - 1) * LAYOUT_CONFIG.verticalSpacing / 2;
+
+      // このブランチの中心Y座標を決定（重複回避）
+      const branchCenterY = Math.max(cursorBottom + BRANCH_GAP + branchHalfHeight, branchHalfHeight);
+     
+      const branchTopY = branchCenterY - branchHalfHeight;
+      const branchBottomY = branchCenterY + branchHalfHeight;
+
+      // ブランチデータに座標を追加
+      subjectData.branches.push({
+        ...branch,
+        centerY: branchCenterY,
+        topY: branchTopY,
+        bottomY: branchBottomY
+      });
+
+      // 科目全体の範囲を更新
+      subjectTopY = Math.min(subjectTopY, branchTopY);
+      subjectBottomY = Math.max(subjectBottomY, branchBottomY);
+
+      // 進行ポインタを更新（次のブランチ用）
+      cursorBottom = branchBottomY;
+    });
+
+    // 科目データを完成
+    subjectData.topY = subjectTopY;
+    subjectData.bottomY = subjectBottomY;
+    subjectData.centerY = (subjectTopY + subjectBottomY) / 2;
+
+    // 科目間の余白を追加
+    cursorBottom = subjectData.bottomY + SUBJECT_GAP;
+
+    // 集計
+    subjectData.branches.forEach(br => mapData.totalTopics += br.topics.length);
+    mapData.subjects.push(subjectData);
+    mapData.maxY = Math.max(mapData.maxY, subjectData.bottomY);
+  }
+
+  return mapData;
+}
+
+function createTopicNode(x, y, topic, config, subjectKey){
+  const group = svgEl('g', {
+    class: 'node',
+    transform: `translate(${x}, ${y})`
+  });
+ 
+  // 円の描画
+  const circle = svgEl('circle', {
+    r: config.nodeRadius,
+    class: `node-circle ${topic.cleared ? 'node-cleared' : ''}`
+  });
+  group.appendChild(circle);
+ 
+  // ラベル（foreignObjectで確実に表示）
+  const labelWidth = 200;
+  const labelHeight = 40;
+  const labelY = config.nodeRadius + 8; // 円の下に8px間隔
+ 
+  const foreignObject = svgEl('foreignObject', {
+    x: -labelWidth / 2,           // 中央揃え
+    y: labelY,                    // 円の下
+    width: labelWidth,
+    height: labelHeight,
+    'pointer-events': 'none'      // クリックは円に渡す
+  });
+ 
+  // HTML div要素でラベルを作成
+  const labelDiv = document.createElement('div');
+  labelDiv.textContent = topic.title || '';
+  labelDiv.style.cssText =
+    'font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;' +
+    'font-size: 14px;' +
+    'font-weight: 500;' +
+    'color: #334155;' +
+    'text-align: center;' +
+    'line-height: 1.2;' +
+    'white-space: nowrap;' +
+    'overflow: visible;' +
+    'width: 100%;' +
+    'margin: 0;' +
+    'padding: 0;';
+ 
+  foreignObject.appendChild(labelDiv);
+  group.appendChild(foreignObject);
+ 
+  // ツールチップ
+  const title = svgEl('title');
+  title.textContent = topic.title || '';
+  group.appendChild(title);
+ 
+  // クリックイベント
+  group.addEventListener('click', () => {
+    jumpToTopic(subjectKey, topic.subCategoryKey || null, topic.topicKey);
+  });
+ 
+  return group;
+}
+
+function renderUnifiedQuestMap(){
+  const mapData = buildUnifiedMapStructure();
+
+  // クリア数計算
+  let clearedCount = 0;
+  mapData.subjects.forEach(subject => {
+    subject.branches.forEach(branch => {
+      clearedCount += branch.topics.filter(topic => topic.cleared).length;
+    });
+  });
+
+  // レイアウト設定
+  const config = LAYOUT_CONFIG;
+
+  // SVGサイズ計算（十分な高さを確保）
+  const width = Math.max(1400, config.marginX * 2 + config.horizontalSpacing * 4 + config.branchLength);
+  const height = Math.max(800, mapData.maxY + config.marginY * 2 + config.nodeRadius * 4);
+
+  // ラッパー作成
+  const section = document.createElement('section');
+  section.className = 'p-5 skill-board-shell';
+
+  const header = document.createElement('div');
+  header.className = 'flex items-center justify-between mb-4';
+  header.innerHTML = `
+    <span class="subject-badge">統合クエストマップ（重複解消版）</span>
+    <span class="text-sm text-gray-600">全体進捗: <span class="font-semibold text-emerald-600">${clearedCount}</span>/<span class="font-semibold">${mapData.totalTopics}</span> クリア</span>
+  `;
+  section.appendChild(header);
+
+  // SVG作成
+  const svg = svgEl('svg', {
+    viewBox: `0 0 ${width} ${height}`,
+    class: 'skill-board'
+  });
+  svg.setAttribute('width', width);
+  svg.setAttribute('height', height);
+  section.appendChild(svg);
+
+  // メイン幹（実際の接続範囲のみ描画）
+const trunkX = config.marginX + config.nodeRadius;
+
+// 各科目の接続Y座標を収集
+const connectionYs = mapData.subjects.map(subject => subject.centerY + config.marginY);
+
+// 接続点がある場合のみ幹を描画
+if (connectionYs.length > 0) {
+  const trunkStartY = Math.min(...connectionYs);
+  const trunkEndY = Math.max(...connectionYs);
+ 
+  svg.appendChild(svgEl('line', {
+    x1: trunkX, y1: trunkStartY,
+    x2: trunkX, y2: trunkEndY,
+    class: 'connector',
+    'stroke-width': '8'
+  }));
+}
+
+  // 各科目の描画（重複しない座標を使用）
+  mapData.subjects.forEach(subject => {
+    const subjectX = trunkX + config.horizontalSpacing;
+    const subjectCenterY = subject.centerY + config.marginY;
+
+    // 幹から科目への線
+    svg.appendChild(svgEl('line', {
+      x1: trunkX, y1: subjectCenterY,
+      x2: subjectX, y2: subjectCenterY,
+      class: 'connector'
+    }));
+
+    // 科目の縦ハブ線（実際のブランチ接続範囲のみ）
+if(subject.branches.length > 1){
+  const branchConnectionYs = subject.branches.map(branch => branch.centerY + config.marginY);
+  const hubStartY = Math.min(...branchConnectionYs);
+  const hubEndY = Math.max(...branchConnectionYs);
+ 
+  svg.appendChild(svgEl('line', {
+    x1: subjectX, y1: hubStartY,
+    x2: subjectX, y2: hubEndY,
+    class: 'connector',
+    'stroke-width': '6'
+  }));
+}
+
+    // 科目名
+    const subjectLabel = svgEl('text', {
+      x: subjectX - 8,
+      y: subjectCenterY - 25,
+      class: 'column-title',
+      'text-anchor': 'end',
+      style: 'font-size: 18px; font-weight: 700;'
+    });
+    subjectLabel.textContent = subject.title;
+    svg.appendChild(subjectLabel);
+
+    // 各ブランチの描画
+    subject.branches.forEach(branch => {
+      const branchCenterY = branch.centerY + config.marginY;
+      const topicStartX = subjectX + config.branchLength;
+
+      if(branch.topics.length <= 1){
+        // 単一トピック
+        const topic = branch.topics[0];
+        if(topic){
+          svg.appendChild(svgEl('line', {
+            x1: subjectX, y1: branchCenterY,
+            x2: topicStartX - config.nodeRadius, y2: branchCenterY,
+            class: `connector ${topic.cleared ? 'connector-cleared' : ''}`
+          }));
+          svg.appendChild(createTopicNode(topicStartX, branchCenterY, topic, config, subject.key));
+        }
+      } else {
+        // 複数トピック
+        const branchEndX = subjectX + config.branchLength / 2;
+       
+        // 科目からブランチ分岐点への線
+        svg.appendChild(svgEl('line', {
+          x1: subjectX, y1: branchCenterY,
+          x2: branchEndX, y2: branchCenterY,
+          class: 'connector'
+        }));
+
+        // ブランチタイトル
+        if(branch.title){
+          const branchLabel = svgEl('text', {
+            x: branchEndX - 8,
+            y: branchCenterY - 20,
+            class: 'row-title',
+            style: 'font-size: 16px; font-weight: 600;'
+          });
+          branchLabel.textContent = branch.title;
+          svg.appendChild(branchLabel);
+        }
+
+        // ブランチの縦線
+        const topicCount = branch.topics.length;
+        const totalHeight = (topicCount - 1) * config.verticalSpacing;
+        const firstTopicY = branchCenterY - totalHeight / 2;
+        const lastTopicY = branchCenterY + totalHeight / 2;
+
+        if(topicCount > 1){
+          svg.appendChild(svgEl('line', {
+            x1: branchEndX, y1: firstTopicY,
+            x2: branchEndX, y2: lastTopicY,
+            class: 'connector'
+          }));
+        }
+
+        // 各トピック
+        branch.topics.forEach((topic, index) => {
+          const topicY = firstTopicY + index * config.verticalSpacing;
+         
+          svg.appendChild(svgEl('line', {
+            x1: branchEndX, y1: topicY,
+            x2: topicStartX - config.nodeRadius, y2: topicY,
+            class: `connector ${topic.cleared ? 'connector-cleared' : ''}`
+          }));
+         
+          svg.appendChild(createTopicNode(topicStartX, topicY, topic, config, subject.key));
+        });
+      }
+    });
+  });
+
+  return section;
+}
+
+function showQuestMap(){
+  const list = document.getElementById('quest-map-list');
+  list.innerHTML = '';
+ 
+  const section = renderUnifiedQuestMap();
+  list.appendChild(section);
+ 
+  showScreen('quest-map-screen');
+}
+
+// ===== ここまで =====
+
+  </script>
+</body>
+</html>
