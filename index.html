@@ -290,7 +290,25 @@ const guildMenu = {
             topics: {
               midashinami:{ title:"身だしなみ", questions:[{ question:"身だしなみとは？", options:["A","B"], answer:"A", explanation:"解説" }]},
               aisatsu:    { title:"挨拶",       questions:[{ question:"挨拶とは？", options:["A","B"], answer:"A", explanation:"解説" }]},
-              keigo:      { title:"敬語",       questions:[{ question:"敬語とは？", options:["A","B"], answer:"A", explanation:"解説" }]},
+              keigo: {
+  title:"敬語",
+  questions:[
+    {
+      type: "text",
+      question: "以下の場面での敬語を使った正しい言い方を回答しなさい。\n\n上司に「何時ごろ戻ってくるか」を質問したい時",
+      answer: "何時ごろ、お戻りになりますか？",
+      acceptable: [
+        "何時ごろお戻りになりますか",
+        "何時頃お戻りになりますか",
+        "いつごろお戻りになりますか",
+        "いつ頃お戻りになりますか",
+        "お戻りは何時ごろですか",
+        "お戻りはいつごろですか"
+      ],
+      explanation: "「戻る」の尊敬語は「お戻りになる」です。上司に対しては尊敬語を使用し、丁寧語「ます」と組み合わせて使います。句読点や「ごろ/頃」「何時/いつ」などの表記ゆれは許容されます。"
+    }
+  ]
+},
               furumai:    { title:"振る舞い",   questions:[{ question:"振る舞いとは？", options:["A","B"], answer:"A", explanation:"解説" }]},
               kijitsu:    { title:"期日/期限",   questions:[{ question:"期日/期限とは？", options:["A","B"], answer:"A", explanation:"解説" }]},
               denwa:      { title:"電話対応",   questions:[{ question:"電話対応とは？", options:["A","B"], answer:"A", explanation:"解説" }]},
@@ -393,27 +411,67 @@ const guildMenu = {
     icon: `<svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 text-purple-500 mx-auto mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" /></svg>`,
     categories: {
       math_basics: {
-        title: "数学の基礎",
-        description: "計算や方程式の基本的な考え方を学びます。",
-        icon: `<svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 14h.01M9 11h.01M12 11h.01M15 11h.01M12 4a1 1 0 011 1v1H11V5a1 1 0 011-1z" /><path d="M4 7v10a2 2 0 002 2h12a2 2 0 002-2V7a2 2 0 00-2-2H6a2 2 0 00-2 2z" /></svg>`,
-        know_how: {
-          seifu_kaisetsu: {
-            title: "正負の数の基本を知りたい",
-            content: `<h2 id="toc-1">正負の数とは？</h2><p>0より大きい数を正の数、0より小さい数を負の数といいます。正の数は「+」、負の数は「-」の符号を使って表します。</p><h3 id="toc-2">加法（足し算）</h3><p>符号が同じ場合は、絶対値を足して共通の符号をつけます。符号が違う場合は、絶対値の大きい方から小さい方を引き、絶対値の大きい方の符号をつけます。</p><h3 id="toc-3">乗法（掛け算）</h3><p>符号が同じ場合は答えの符号は「+」、符号が違う場合は答えの符号は「-」になります。</p>`
-          },
-          houteishiki_kaisetsu: {
-            title: "方程式の解き方を知りたい",
-            content: `<h2 id="toc-1">一次方程式の解き方</h2><p>「移項」を使って、文字の項を左辺に、数の項を右辺に集めるのが基本です。</p><ol class="list-decimal list-inside"><li>文字の項を左辺、数の項を右辺に移項する（移項すると符号が変わる）。</li><li>両辺をそれぞれ計算して、ax = b の形にする。</li><li>両辺をxの係数aで割る。</li></ol>`
-          }
-        },
-        faq: {
-          title: "数学の基礎に関するよくあるお問い合わせ",
-          questions: [
-            { q: "負の数同士をかけるとどうなりますか？", a: "答えの符号は正(+)になります。例：(-2) × (-3) = 6" },
-            { q: "移項すると符号はどうなりますか？", a: "符号は逆になります。プラスはマイナスに、マイナスはプラスになります。" }
-          ]
-        }
-      },
+  title: "労務・勤怠ルール",
+  description: "労務・勤怠に関するルールや手続きを確認できます。",
+  icon: `<svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-lime-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>`,
+  know_how: {
+      kyuyo_furikomi: {
+    title: "給与の振込先口座を変更したい",
+    content: `<p>「freee申請フォーム（振込口座情報変更）」の提出が必要です。<br>詳細は<a href="https://docs.google.com/presentation/d/1Grcz7P1EnBOI1wvEZ2n5mvUBcePWteqf/edit#slide=id.p1" target="_blank" class="text-blue-600 hover:underline">こちら</a>をご確認ください。</p>`
+  },
+  shataku_riyo: {
+    title: "社宅制度を利用したい",
+    content: `<p>労務問い合わせフォームにて社宅利用希望の旨をご連絡ください。給与額によってはご利用いただけない場合もございますのでご承知おきください。</p>`
+  }
+},
+  faq: {
+    title: "労務・勤怠ルールに関するよくあるお問い合わせ",
+    questions: [
+      { q: "引越した際に必要な手続きを教えてください。", a: "「freee申請フォーム（住所変更）」、「住民票のコピー」の提出が必要です。<br><br>通勤費が変わる場合は別途「freee申請フォーム（通勤交通費変更）」の提出が必要です。<br>詳細は<a href='https://docs.google.com/presentation/d/1Grcz7P1EnBOI1wvEZ2n5mvUBcePWteqf/edit#slide=id.p1' target='_blank' class='text-blue-600 hover:underline'>こちら</a>をご確認ください。<br><br>引っ越しに伴い住宅手当の新規申し込み、継続申請、不支給申請をする場合は「住宅手当申請書」のご記入が必要です。" },
+      { q: "結婚した際に必要な手続きを教えてください。", a: "「freee申請フォーム（本人情報変更、家族情報変更）」、「戸籍謄本」の提出が必要です。<br>詳細は<a href='https://docs.google.com/presentation/d/1Grcz7P1EnBOI1wvEZ2n5mvUBcePWteqf/edit#slide=id.p1' target='_blank' class='text-blue-600 hover:underline'>こちら</a>をご確認ください。<br><br>氏名変更を伴う場合は給与口座の名義を変更の上「freee申請フォーム（振込口座情報変更）」のご提出も必要です。<br>「結婚祝い金申請書」をご記入の上、労務にご提出いただいた場合、提出月の翌月末の給与にてお祝い金を支給できます。" },
+      { q: "子どもが生まれる予定です。産前・産後休暇、育児休暇を取得したいです。", a: "産前・産後休暇、育児休暇に入られる前に労務から休暇についてのご案内のため「産休面談」を実施しております。<br>休暇に入られる前に労務問い合わせフォームにてご相談いただき、日時を設定して面談を実施してください。<br>また、男性でも出生時育児休業、育児休暇の取得が可能です。労務までお問合せください。" },
+      { q: "離婚した際に必要な手続きを教えてください。", a: "「freee申請フォーム（本人情報変更、家族情報変更）」、「戸籍謄本」の提出が必要です。<br>詳細は<a href='https://docs.google.com/presentation/d/1Grcz7P1EnBOI1wvEZ2n5mvUBcePWteqf/edit#slide=id.p1' target='_blank' class='text-blue-600 hover:underline'>こちら</a>をご確認ください。<br><br>氏名変更を伴う場合は給与口座の名義を変更の上「freee申請フォーム（振込口座情報変更）」のご提出も必要です。" },
+      { q: "住宅手当を申請したいです。", a: "住宅手当申請書と添付書類として「賃貸契約書のコピー」が必要です。なおご自身が名義人の住宅のみが対象です。" },
+      { q: "社宅制度を利用したいです。", a: "労務問い合わせフォームにて社宅利用希望の旨をご連絡ください。給与額によってはご利用いただけない場合もございますのでご承知おきください。" },
+      { q: "給与の振込先口座を変更したいです。", a: "「freee申請フォーム（振込口座情報変更）」の提出が必要です。<br>詳細は<a href='https://docs.google.com/presentation/d/1Grcz7P1EnBOI1wvEZ2n5mvUBcePWteqf/edit#slide=id.p1' target='_blank' class='text-blue-600 hover:underline'>こちら</a>をご確認ください。" },
+      { q: "子供を扶養に入れたいのですが、どうすればよいですか。", a: "「freee申請フォーム（本人情報変更、家族情報変更）」、「戸籍謄本or住民票（マイナンバーが記載のもの）」の提出が必要です。<br>詳細は<a href='https://docs.google.com/presentation/d/1Grcz7P1EnBOI1wvEZ2n5mvUBcePWteqf/edit#slide=id.p1' target='_blank' class='text-blue-600 hover:underline'>こちら</a>をご確認ください。" },
+      { q: "引っ越しや婚姻等で会社に提出している情報が変わるのですが、どうすればよいですか。", a: "会社への届出事項に変更が生じた時についてのご案内をお読みいただき、必要な対応をお願いします。" },
+      { q: "運賃の値上げにより通勤費が増加します。申請は必要ですか？", a: "「freee申請フォーム（通勤交通費変更）」のご提出が必要です。<br>詳細は<a href='https://docs.google.com/presentation/d/1Grcz7P1EnBOI1wvEZ2n5mvUBcePWteqf/edit#slide=id.p1' target='_blank' class='text-blue-600 hover:underline'>こちら</a>をご確認ください。" },
+      { q: "通勤に自転車を利用しますが、駐輪場の利用料金は通勤手当として支給されるのでしょうか？", a: "通勤手当は公共交通機関の利用に対し支給するものであり、駐輪場の利用料金は通勤手当の対象外です。" },
+      { q: "就業証明書を記載してほしいです。", a: "提出先の自治体をご確認のうえ、その自治体が公開している就労証明書のテンプレートのURL、もしくはテンプレートを印刷したものを労務問い合わせフォームにてご提出ください。<br>なお労務業務の都合上発行までお時間をいただく場合がございますので、必要になったらお早目にご連絡をお願いします。" },
+      { q: "年収証明書を作成してほしいです。", a: "既に支払いがある給与については給与明細・源泉徴収票で証明が可能です。入社時の年収見込証明書は労務にて作成いたしますので作成依頼を労務問い合わせフォームにて投稿してください。" },
+      { q: "休業証明書を作成してほしいです。", a: "労務問い合わせフォームにて作成希望の旨をご連絡ください。その際に<br>・証明してほしい期間<br>・その他記載してほしい事項<br>を書いてください。" },
+      { q: "賃貸契約のために、内定通知書/年収見込証明書が欲しいです。", a: "労務へのお問い合わせフォームから依頼ください。<br>用途・記載が必要な内容をまとめてご依頼ください。<br><br>私用アドレスへの送付が必要な場合は、送付先アドレスも明記してください。<br><br>内定者の方は入社時まで初任給が決まらないため、想定で作成することご了承ください。" },
+      { q: "会社の健康保険に加入するタイミングを知りたい。", a: "【正社員・契約社員】<br>入社して2週間程度で加入手続きをします。<br>加入申請後、年金事務所の手続きが済むと資格確認のお知らせが発行されますが、いつ頃届くかは年金事務所の処理速度次第であり、労務からはお答えできかねます。<br>加入日は入社日になります。<br><br>【アルバイト】<br>週20時間以上の勤務があった場合、加入対象となります。<br>入社してから1カ月程度勤怠状況を見させていただきます。<br>加入は稼働条件を満たしたタイミングからになります（入社時から勤怠が安定していれば入社日から遡って加入となります。）<br>入社直後に加入手続きをする必要がある場合は別途労務までご連絡ください。" },
+      { q: "保険証が手元にないが病院に行きたいです。", a: "マイナ保険への切り替えによって、保険証の発行はなくなりました。<br><br>入社直後の場合<br>一度全額自費負担していただいた後に下記リンクを参考に療養費申請をしてください。<br>提出先は協会けんぽなので会社に提出しないようご注意ください。<br><a href='https://www.kyoukaikenpo.or.jp/g2/cat230/r56/' target='_blank' class='text-blue-600 hover:underline'>https://www.kyoukaikenpo.or.jp/g2/cat230/r56/</a><br><br>マイナンバーカードがない場合<br>被保険者資格証明書をお近くの年金事務所で発行してもらってください。<br><a href='https://www.nenkin.go.jp/service/kounen/tekiyo/hihokensha2/20131113.html' target='_blank' class='text-blue-600 hover:underline'>https://www.nenkin.go.jp/service/kounen/tekiyo/hihokensha2/20131113.html</a>" },
+      { q: "新宿以外の提携クリニックで受診したいです。", a: "予約時に新宿以外のクリニックも選択いただけます。<br>予約時に受診希望施設選択ができますので、希望のクリニックで受診予約お願い致します。<br>（渋谷・横浜みなとみらい・大手町・田町三田）" },
+      { q: "退職することになりました。", a: "・最終勤務日<br>・退職日<br>を労務宛にご連絡ください。<br>なお最終勤務日に労務と30分ほど退職手続きに際する面談を設定させていただいております。退職が決まりましたらお早目に労務までご連絡の上、退職面談の日程設定をお願いします。" },
+      { q: "休職することになりました", a: "・休職届<br>・私傷病の場合は医師の診断書<br>上記の書類を労務宛にご提出ください。PDFや画像ファイルでも構いません。" },
+      { q: "持株会の加入・休止・退会をしたい", a: "経理グループにてご案内しております。お手数ですが経理グループにお問合せの上届出書の記入・提出をお願いします。" },
+      { q: "ポケ換金の申請をしたいです。", a: "ポケ事務局より、1月・4月・7月・10月の下旬に換金申請案内が社員ALLのチャネルに届きますので、そのタイミングで申請してください。<br>なお、ポケの管轄は労務ではございませんので、詳細のご確認はポケ事務局の堤洋介宛てにお願いいたします。" },
+      { q: "自身で確定申告をする予定のため、会社から依頼された年末調整については対応不要でしょうか？", a: "確定申告をする場合も、年末調整は実施いたします。<br>必ずfreeeへの情報入力を行ってください。<br>※従業員の年末調整を行うのは会社の義務です。" },
+      { q: "必要書類（前職の源泉徴収票、保険の書類）が手元にありません。会社の年末調整をキャンセルし、自身で確定申告を行うことになりますか？", a: "年末調整は確定申告の要否に関わらず全従業員が対象です。<br>必要書類がない場合はなしのままで年末調整いたします。<br>源泉徴収票の発行後、必要があればご自身で確定申告をお願いします。" },
+      { q: "入社時に前職の源泉徴収票を提出しています。年末調整にあたり、再度提出する必要はありますか？", a: "不要です。<br>入社時にご提出いただいた源泉徴収票を参照いたします。" },
+      { q: "傷病手当金を申請したいです。", a: "まずは協会けんぽからテンプレートをダウンロードして医師に記入を依頼してください。<br>記入後のものを労務宛にお渡しいただきましたら、事業主欄を記入の上こちらで協会けんぽに送付いたします。" },
+      { q: "傷病手当金はいつ入金されるのでしょうか？", a: "申請書受付日から指定口座への入金までの期間については、書類の不備等がなければ約1ヵ月程度が目安となります。<br>また、協会けんぽへの振込日のお問い合わせはご遠慮ください。" },
+      { q: "freeeから「1/2と1/3の勤怠が未入力」と通知が来ておりますが、年始休日でしたのでそのまま未入力で問題ないでしょうか。", a: "問題ないです。" },
+      { q: "就業規則を確認したいです。", a: "アルバイトの方は<a href='https://docs.google.com/presentation/d/1Grcz7P1EnBOI1wvEZ2n5mvUBcePWteqf/edit#slide=id.p1' target='_blank' class='text-blue-600 hover:underline'>こちら</a>からにご連絡ください。<br>社員の方はTUNAGからご確認ください。" },
+      { q: "健康保険証が届くまでに通院したく、健康保険被保険者資格証明書を提供してほしい。", a: "事業主側では発行は承っておりません。<br>ご自身で年金事務所へ発行申請をしていただく、もしくは療養費の申請をご検討ください。<br>詳しくは下記リンクをご覧ください。<br>療養費申請(一度自費で診療を受けた後に還付してもらう方法)<br><a href='https://www.kyoukaikenpo.or.jp/g2/cat230/r56/' target='_blank' class='text-blue-600 hover:underline'>https://www.kyoukaikenpo.or.jp/g2/cat230/r56/</a>" },
+      { q: "西武新宿駅から2駅以内の住宅も手当がもらえますか", a: "貰えます。<br>ただし、オフィスから3km圏内である必要があります。" },
+      { q: "大江戸線の新宿西口駅から2駅以内の住宅も手当もらえますか", a: "貰えます。<br>ただし、オフィスから3km圏内である必要があります。" },
+      { q: "地下鉄ではなくバスを利用することになる確率が高いのですが、バスで通勤する場合でも通勤手当がもらえるのですか？", a: "バスを使っても問題御座いません。" },
+      { q: "勤怠の打刻を誤ってしまったのですが、どうしたらよいですか？", a: "当月中であれば修正可能です。<br>月初１営業日には前月１日から末日までの勤怠をロックします。勤怠の編集が必要な場合はかならず月末最終営業日までに修正してください<br>修正方法は、<a href='https://docs.google.com/presentation/d/1Grcz7P1EnBOI1wvEZ2n5mvUBcePWteqf/edit#slide=id.p1' target='_blank' class='text-blue-600 hover:underline'>こちら</a>をご確認ください。" },
+      { q: "休憩時間はどれくらい取ればよいですか。", a: "労働基準法上で休憩時間に関しての規定は<br>6時間以上の勤務の場合、45分間<br>8時間以上の勤務の場合、1時間の休憩取得が必須となっております。<br><br>ただ、業務の状況に応じて時間帯がずれたりする場合が多いと思われますので<br>業務時間のどこかで既定の休憩をしていただければ問題がないため、<br>自動入力（12:00～13:00）の設定しておりますので、都度修正せずで大丈夫です！<br>※6時間勤務で、休憩が45分間の場合は修正いただきますようお願いいたします。" },
+      { q: "時間外稼働による割増賃金はどういう場合に発生するのか。", a: "時間外に関しては、<br>・1日8時間以上の稼働時間<br>・週40時間以上の稼働時間<br>が法定時間外としてカウントされ割増賃金となります。<br><br>1週間の起算日は日曜日になるため、日～土のうち、法定休日である日曜日以外の稼働時間で考えます。<br>祝日は法定外休日のため、祝日の代わりに土曜日に稼働した場合、上記の条件に当てはまらなければ時間外とはなりません。" },
+      { q: "割増賃金は重複して支給されるのか。", a: "「時間外労働」「深夜労働」「休日労働」のうち、複数に該当する場合の割増率の計算は以下の通りとなります。<br>・「時間外労働」と「休日労働」の両方に該当する場合は、高い方の割増率のみが適用される<br>・「深夜労働」の割増は、他の割増の有無にかかわらず、必ず加算される" },
+      { q: "給与は何日に振り込まれますか。", a: "毎月末日締め、翌月末日にお振込みとなります。<br><br>「末日」は原則最終日ですが、最終日が土日祝の場合、直前の平日に振り込まれます。" },
+      { q: "代休は基本日曜稼働の週に取っていたが、月を跨ぐことは可能か", a: "振休は、月跨ぎでも問題御座いません。<br>ただし、残業時間は月内で調整する必要があるので、ご認識ください！<br><br>例）7/1(火)に振休予定で6/29(日)に稼働。<br>6/29(日)に残業時間が発生（8時間超の稼働）した場合、6月合計での残業時間（45時間or75時間）に収める必要があります！" },
+      { q: "有給はどこで申請するのか。", a: "特に申請・承認は御座いません。<br>ご自身の勤怠ページより登録を行ってください！<br>※操作方法は<a href='https://docs.google.com/presentation/d/1Grcz7P1EnBOI1wvEZ2n5mvUBcePWteqf/edit#slide=id.p1' target='_blank' class='text-blue-600 hover:underline'>こちら</a>の「勤怠に有給休暇を入力する」をご参照ください<br><br>当月中や未来月への登録は可能ですが、月を跨ぐと登録は不可能になります。<br>（給与計算のために月末時点で勤怠を締めさせて頂くためです。仮に操作できてしまったとしても支給漏れにも繋がってしまいますので、絶対にやめてください。）" },
+      { q: "有給が付与されていない、付与された日数が思ったより少ない。", a: "有給は付与対象期間（直近半年or1年）の出勤率が80%以上の場合に付与されます。<br>※アルバイトの方は所定労働日数に対して何日来ているかで判断致します。<br>出勤率が基準に満たない場合は次回の付与タイミングまでスキップされますので、ご認識お願いします。<br><br>有給は所定労働日数に応じて付与される日数が変わります。<br>詳細は厚生労働省の資料をご確認ください。" },
+      { q: "規程を確認したいです。", a: "■正社員・契約社員<br>TUNAGをご確認ください。<br><br>■アルバイト<br><a href='https://docs.google.com/presentation/d/1Grcz7P1EnBOI1wvEZ2n5mvUBcePWteqf/edit#slide=id.p1' target='_blank' class='text-blue-600 hover:underline'>こちら</a>のDriveをご確認ください。" }
+    ]
+  }
+},
       english_basics: {
         title: "英語の基礎",
         description: "英単語や基礎文法のポイントを確認します。",
@@ -639,6 +697,14 @@ function showLibraryCategory(categoryKey){
   const c = guildMenu.chiebukuro.categories[categoryKey];
   document.getElementById('library-category-title').textContent = c.title;
 
+  // ここを追加：労務カテゴリのみ見出しを変更
+  const knowHowHeading = document.querySelector('#know-how-section h2');
+  if (knowHowHeading) {
+    const sectionTitle = (categoryKey === 'math_basics') ? 'ルールについて知りたい' : '特定の操作について知りたい';
+    knowHowHeading.innerHTML = `
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-3 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>${sectionTitle}
+    `;
+  }
   const list1 = document.getElementById('know-how-list'); list1.innerHTML='';
   for(const articleKey in c.know_how){
     const a = c.know_how[articleKey];
@@ -702,14 +768,67 @@ function showLibraryFaq(categoryKey){
       </tr>
     </thead><tbody class="divide-y divide-gray-200">`;
   c.faq.questions.forEach((q,i)=>{
-    html += `<tr><td class="py-4 px-4 align-top text-center font-semibold text-gray-500">${i+1}</td><td class="py-4 px-4 align-top text-gray-700">${q.q}</td><td class="py-4 px-4 align-top text-gray-700">${q.a}</td></tr>`;
-  });
+    const question = (q.q || '').replace(/\n/g, '<br>');
+  const answer = (q.a || '').replace(/\n/g, '<br>');
+  html += `<tr><td class="py-4 px-4 align-top text-center font-semibold text-gray-500">${i+1}</td><td class="py-4 px-4 align-top text-gray-700">${question}</td><td class="py-4 px-4 align-top text-gray-700">${answer}</td></tr>`;
+});
   html += `</tbody></table>`;
   document.getElementById('library-faq-table').innerHTML=html;
   showScreen('chiebukuro-faq-screen');
 }
 
 // ===== クイズ =====
+// テキスト正規化関数（日本語対応）
+function normalizeText(text) {
+  if (typeof text !== 'string') return '';
+  return text.trim()
+    .normalize('NFKC')                    // Unicode正規化（全角半角統一）
+    .toLowerCase()
+    .replace(/[\s　]+/g, '')              // 半角・全角スペース除去
+    .replace(/[？?]/g, '？')              // 疑問符統一
+    .replace(/[、,，]/g, '、')            // 読点統一
+    .replace(/[。．]/g, '。')             // 句点統一
+    .replace(/[ごろ頃]/g, 'ごろ')         // 時間表現統一
+    .replace(/[いつ何時]/g, 'いつ');      // 疑問詞統一
+}
+
+// テキスト回答の採点関数
+function evaluateTextAnswer(userAnswer, question) {
+  const userNorm = normalizeText(userAnswer);
+ 
+  // 1. 許容解答のチェック（最優先）
+  if (Array.isArray(question.acceptable) && question.acceptable.length > 0) {
+    const isAcceptable = question.acceptable.some(acceptable =>
+      userNorm === normalizeText(acceptable) ||
+      userNorm.includes(normalizeText(acceptable))
+    );
+    if (isAcceptable) return { result: '○', score: 100 };
+  }
+ 
+  // 2. 模範解答との完全一致
+  if (question.answer) {
+    const answerNorm = normalizeText(question.answer);
+    if (userNorm === answerNorm || userNorm.includes(answerNorm)) {
+      return { result: '○', score: 100 };
+    }
+  }
+ 
+  // 3. キーワード部分点（オプション）
+  if (Array.isArray(question.keywords) && question.keywords.length > 0) {
+    const matchedCount = question.keywords.filter(keyword =>
+      userNorm.includes(normalizeText(keyword))
+    ).length;
+    const score = Math.round((matchedCount / question.keywords.length) * 100);
+   
+    if (score >= 70) return { result: '○', score };
+    if (score >= 40) return { result: '△', score };
+    return { result: '×', score };
+  }
+ 
+  // 4. 不正解
+  return { result: '×', score: 0 };
+}
+
 function startQuiz(questions, mode, topicId){
   quizData = questions;
   currentMode = mode;
@@ -725,27 +844,78 @@ function showQuestion(){
   const optionsContainer = document.getElementById('options-container');
   const questionArea = document.getElementById('question-area');
   nextBtn.classList.add('hidden');
-  optionsContainer.innerHTML = ''; questionArea.innerHTML = ''; selectedOption=null;
+  optionsContainer.innerHTML = '';
+  questionArea.innerHTML = '';
+  selectedOption = null;
 
   const q = quizData[currentQuestionIndex];
   document.getElementById('question-number').textContent = `問題 ${currentQuestionIndex+1} / ${quizData.length}`;
+
+  // 問題文表示（改行対応）
   if(q.image){
-    const img = document.createElement('img'); img.src=q.image; img.alt=q.question; img.className='mx-auto rounded-lg max-h-64 mb-4';
+    const img = document.createElement('img');
+    img.src = q.image;
+    img.alt = q.question;
+    img.className = 'mx-auto rounded-lg max-h-64 mb-4';
     questionArea.appendChild(img);
-    const p = document.createElement('p'); p.textContent=q.question; p.className='text-2xl md:text-3xl text-center font-semibold text-gray-800'; questionArea.appendChild(p);
-  }else{
-    questionArea.innerHTML = `<p class="text-2xl md:text-3xl text-center font-semibold text-gray-800">${q.question}</p>`;
+  }
+ 
+  const questionText = document.createElement('p');
+  questionText.className = 'text-2xl md:text-3xl text-center font-semibold text-gray-800 whitespace-pre-wrap';
+  questionText.textContent = q.question;
+  questionArea.appendChild(questionText);
+
+  // テキスト入力問題の場合
+  if(q.type === 'text'){
+    const textContainer = document.createElement('div');
+    textContainer.className = 'col-span-2';
+    textContainer.innerHTML = `
+      <textarea
+        id="answer-textarea"
+        placeholder="こちらに回答を入力してください..."
+        class="w-full p-4 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-lg min-h-32"
+        rows="4"
+      ></textarea>
+      <p class="text-sm text-gray-500 mt-2">※ 正確な敬語表現で回答してください（Ctrl + Enter で送信）</p>
+    `;
+    optionsContainer.appendChild(textContainer);
+
+    const textarea = document.getElementById('answer-textarea');
+    textarea.addEventListener('input', function() {
+      if (this.value.trim().length > 0) {
+        selectedOption = this.value.trim();
+        nextBtn.classList.remove('hidden');
+      } else {
+        selectedOption = null;
+        nextBtn.classList.add('hidden');
+      }
+    });
+   
+    // Ctrl + Enter で送信
+    textarea.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' && e.ctrlKey && textarea.value.trim()) {
+        e.preventDefault();
+        document.getElementById('next-btn').click();
+      }
+    });
+   
+    textarea.focus();
+    return;
   }
 
-  q.options.forEach(opt=>{
-    const b = document.createElement('button');
-    b.textContent = opt;
-    b.classList.add('option-btn','p-4','bg-white','border-2','border-gray-300','rounded-lg','text-lg','hover:bg-gray-100','transition');
-    if(q.options.includes("○")) b.classList.add('text-4xl','font-bold');
-    b.addEventListener('click',()=>selectAnswer(opt,b));
-    optionsContainer.appendChild(b);
-  });
+  // 既存の選択式問題
+  if(Array.isArray(q.options)){
+    q.options.forEach(opt=>{
+      const b = document.createElement('button');
+      b.textContent = opt;
+      b.classList.add('option-btn','p-4','bg-white','border-2','border-gray-300','rounded-lg','text-lg','hover:bg-gray-100','transition');
+      if(q.options.includes("○")) b.classList.add('text-4xl','font-bold');
+      b.addEventListener('click',()=>selectAnswer(opt,b));
+      optionsContainer.appendChild(b);
+    });
+  }
 }
+
 
 function selectAnswer(option, el){
   selectedOption = option;
@@ -755,11 +925,33 @@ function selectAnswer(option, el){
 }
 
 function nextQuestion(){
-  if(selectedOption===null) return;
-  userAnswers.push({questionObj: quizData[currentQuestionIndex], selected:selectedOption});
+  const q = quizData[currentQuestionIndex];
+  let chosen = null;
+
+  if(q.type === 'text'){
+    const input = document.getElementById('answer-textarea');
+    if(!input || !input.value.trim()){
+      alert('回答を入力してください。');
+      return;
+    }
+    chosen = input.value.trim();
+  } else {
+    if(selectedOption === null){
+      alert('選択肢を選んでください。');
+      return;
+    }
+    chosen = selectedOption;
+  }
+
+  userAnswers.push({questionObj: q, selected: chosen});
   currentQuestionIndex++;
-  if(currentQuestionIndex<quizData.length) showQuestion(); else showResult();
+  if(currentQuestionIndex < quizData.length){
+    showQuestion();
+  } else {
+    showResult();
+  }
 }
+
 
 function showResult(){
   let correct = 0;
